@@ -1,4 +1,4 @@
-Golang client NIC.ru for [`libdns`](https://github.com/libdns/libdns)
+Golang client for NIC.ru API for [`libdns`](https://github.com/libdns/libdns)
 =======================
 
 [![Go Reference](https://pkg.go.dev/badge/test.svg)](https://pkg.go.dev/github.com/libdns/TODO:PROVIDER_NAME)
