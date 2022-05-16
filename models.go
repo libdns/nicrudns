@@ -160,7 +160,7 @@ type Cname struct {
 }
 
 type Dname struct {
-	Text string `xml:",chardata"json:"text,omitempty"`
+	Text string `xml:",chardata" json:"text,omitempty"`
 	Name string `xml:"name" json:"name,omitempty"`
 }
 

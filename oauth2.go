@@ -15,8 +15,8 @@ func (client *Client) GetOauth2Client() (*http.Client, error) {
 	}
 
 	oauth2Config := oauth2.Config{
-		ClientID:     client.config.Credentials.OAuth2ClientID,
-		ClientSecret: client.config.Credentials.OAuth2SecretID,
+		ClientID:     client.provider.OAuth2ClientID,
+		ClientSecret: client.provider.OAuth2SecretID,
 		Endpoint: oauth2.Endpoint{
 			TokenURL:  TokenURL,
 			AuthStyle: oauth2.AuthStyleInParams,
@@ -33,7 +33,7 @@ func (client *Client) GetOauth2Client() (*http.Client, error) {
 		}
 	}
 
-	oauth2Token, err := oauth2Config.PasswordCredentialsToken(ctx, client.config.Credentials.Username, client.config.Credentials.Password)
+	oauth2Token, err := oauth2Config.PasswordCredentialsToken(ctx, client.provider.Username, client.provider.Password)
 	if err != nil {
 		return nil, errors.Wrap(err, AuthorizationError.Error())
 	}

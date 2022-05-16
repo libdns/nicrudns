@@ -8,14 +8,14 @@ import (
 	"net/http"
 )
 
-func (client *Client) Add(request *Request) (*Response, error) {
+func (client *Client) Add(zoneName string, request *Request) (*Response, error) {
 
 	buf := bytes.NewBuffer(nil)
 	if err := xml.NewEncoder(buf).Encode(request); err != nil {
 		return nil, errors.Wrap(err, XmlEncodeError.Error())
 	}
 
-	url := fmt.Sprintf(AddRecordsUrlPattern, client.config.DnsServiceName, client.config.ZoneName)
+	url := fmt.Sprintf(AddRecordsUrlPattern, client.provider.DnsServiceName, zoneName)
 
 	req, err := http.NewRequest(http.MethodPut, url, buf)
 	if err != nil {

@@ -7,8 +7,8 @@ import (
 	"net/http"
 )
 
-func (client *Client) RollbackZone() (*Response, error) {
-	url := fmt.Sprintf(RollbackUrlPattern, client.config.DnsServiceName, client.config.ZoneName)
+func (client *Client) RollbackZone(zoneName string) (*Response, error) {
+	url := fmt.Sprintf(RollbackUrlPattern, client.provider.DnsServiceName, zoneName)
 	request, err := http.NewRequest(http.MethodPost, url, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, RequestError.Error())

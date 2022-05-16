@@ -8,8 +8,8 @@ import (
 	"net/http"
 )
 
-func (client *Client) GetRecords() ([]*RR, error) {
-	url := fmt.Sprintf(GetRecordsUrlPattern, client.config.DnsServiceName, client.config.ZoneName)
+func (client *Client) GetRecords(zoneName string) ([]*RR, error) {
+	url := fmt.Sprintf(GetRecordsUrlPattern, client.provider.DnsServiceName, zoneName)
 	request, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, RequestError.Error())
@@ -33,7 +33,7 @@ func (client *Client) GetRecords() ([]*RR, error) {
 	} else {
 		var records []*RR
 		for _, zone := range apiResponse.Data.Zone {
-			if zone.Name != client.config.ZoneName {
+			if zone.Name != zoneName {
 				continue
 			}
 			records = append(records, zone.Rr...)

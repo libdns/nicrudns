@@ -9,7 +9,7 @@ import (
 	"strconv"
 )
 
-func (client *Client) AddCnames(names []string, target string, ttl string) (*Response, error) {
+func (client *Client) AddCnames(zoneName string, names []string, target string, ttl string) (*Response, error) {
 	payload := Request{
 		RrList: &RrList{
 			Rr: []*RR{},
@@ -31,7 +31,7 @@ func (client *Client) AddCnames(names []string, target string, ttl string) (*Res
 		return nil, errors.Wrap(err, XmlEncodeError.Error())
 	}
 
-	url := fmt.Sprintf(AddRecordsUrlPattern, client.config.DnsServiceName, client.config.ZoneName)
+	url := fmt.Sprintf(AddRecordsUrlPattern, client.provider.DnsServiceName, zoneName)
 
 	req, err := http.NewRequest(http.MethodPut, url, buf)
 	if err != nil {

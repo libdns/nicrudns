@@ -7,8 +7,8 @@ import (
 	"net/http"
 )
 
-func (client *Client) DeleteRecord(id int) (*Response, error) {
-	url := fmt.Sprintf(DeleteRecordsUrlPattern, client.config.DnsServiceName, client.config.ZoneName, id)
+func (client *Client) DeleteRecord(zoneName string, id int) (*Response, error) {
+	url := fmt.Sprintf(DeleteRecordsUrlPattern, client.provider.DnsServiceName, zoneName, id)
 	req, err := http.NewRequest(http.MethodDelete, url, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, RequestError.Error())

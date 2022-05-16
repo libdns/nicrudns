@@ -1,6 +1,6 @@
 package nicrudns
 
-func (client *Client) AddTxt(names []string, target string, ttl string) (*Response, error) {
+func (client *Client) AddTxt(zoneName string, names []string, target string, ttl string) (*Response, error) {
 	request := &Request{
 		RrList: &RrList{
 			Rr: []*RR{},
@@ -16,6 +16,6 @@ func (client *Client) AddTxt(names []string, target string, ttl string) (*Respon
 			},
 		})
 	}
-	return client.Add(request)
+	return client.Add(zoneName, request)
 
 }

@@ -7,8 +7,8 @@ import (
 	"net/http"
 )
 
-func (client *Client) CommitZone() (*Response, error) {
-	url := fmt.Sprintf(CommitUrlPattern, client.config.DnsServiceName, client.config.ZoneName)
+func (client *Client) CommitZone(zoneName string) (*Response, error) {
+	url := fmt.Sprintf(CommitUrlPattern, client.provider.DnsServiceName, zoneName)
 	request, err := http.NewRequest(http.MethodPost, url, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, RequestError.Error())

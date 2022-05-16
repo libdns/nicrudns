@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/libdns/libdns"
-	"github.com/maetx777/libdns-nicru"
+	"github.com/libdns/nicrudns"
 	"github.com/pkg/errors"
 	"time"
 )
@@ -21,12 +21,12 @@ var (
 
 func ExampleLibdnsProvider() error {
 	provider := nicrudns.Provider{
-		OAuth2ClientID:   clientID,
-		OAuth2SecretID:   secretID,
-		Username:         username,
-		Password:         password,
-		NicRuServiceName: nicruServiceName,
-		CachePath:        cachePath,
+		OAuth2ClientID: clientID,
+		OAuth2SecretID: secretID,
+		Username:       username,
+		Password:       password,
+		DnsServiceName: nicruServiceName,
+		CachePath:      cachePath,
 	}
 	ctx := context.TODO()
 	var records = []libdns.Record{
@@ -48,20 +48,17 @@ func ExampleLibdnsProvider() error {
 }
 
 func ExampleNicruClient() error {
-	config := &nicrudns.Config{
-		Credentials: &nicrudns.Credentials{
-			OAuth2ClientID: clientID,
-			OAuth2SecretID: secretID,
-			Username:       username,
-			Password:       password,
-		},
-		ZoneName:       zoneName,
+	provider := nicrudns.Provider{
+		OAuth2ClientID: clientID,
+		OAuth2SecretID: secretID,
+		Username:       username,
+		Password:       password,
 		DnsServiceName: nicruServiceName,
 		CachePath:      cachePath,
 	}
-	client := nicrudns.NewClient(config)
+	client := nicrudns.NewClient(&provider)
 	var names = []string{`www`}
-	if response, err := client.AddA(names, `1.2.3.4`, `3600`); err != nil {
+	if response, err := client.AddA(zoneName, names, `1.2.3.4`, `3600`); err != nil {
 		return errors.Wrap(err, `add records error`)
 	} else {
 		for _, rr := range response.Data.Zone[0].Rr {

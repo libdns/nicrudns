@@ -9,7 +9,7 @@ import (
 )
 
 func (client *Client) UpdateCacheFile(token *oauth2.Token) error {
-	tokenPath := client.config.CachePath
+	tokenPath := client.provider.CachePath
 	file, err := os.Create(tokenPath)
 	if err != nil {
 		return errors.Wrap(err, CreateFileError.Error())
@@ -21,7 +21,7 @@ func (client *Client) UpdateCacheFile(token *oauth2.Token) error {
 }
 
 func (client *Client) ReadCacheFile() (*oauth2.Token, error) {
-	tokenPath := client.config.CachePath
+	tokenPath := client.provider.CachePath
 	data, err := os.ReadFile(tokenPath)
 	if err != nil {
 		return nil, errors.Wrap(err, ReadFileError.Error())

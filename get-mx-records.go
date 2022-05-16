@@ -5,8 +5,8 @@ import (
 	"regexp"
 )
 
-func (client *Client) GetMxRecords(nameFilter string, targetFilter string) ([]*RR, error) {
-	allRecords, err := client.GetRecords()
+func (client *Client) GetMxRecords(zoneName string, nameFilter string, targetFilter string) ([]*RR, error) {
+	allRecords, err := client.GetRecords(zoneName)
 	if err != nil {
 		return nil, err
 	}

@@ -11,29 +11,19 @@ import (
 
 // Provider facilitates DNS record manipulation with NIC.ru.
 type Provider struct {
-	OAuth2ClientID   string `json:"oauth2_client_id"`
-	OAuth2SecretID   string `json:"oauth2_secret_id"`
-	Username         string `json:"username"`
-	Password         string `json:"password"`
-	NicRuServiceName string `json:"nic_ru_service_name"`
-	CachePath        string `json:"cache_path"`
+	OAuth2ClientID string `json:"oauth2_client_id"`
+	OAuth2SecretID string `json:"oauth2_secret_id"`
+	Username       string `json:"username"`
+	Password       string `json:"password"`
+	DnsServiceName string `json:"dns_service_name"`
+	CachePath      string `json:"cache_path"`
 }
 
 // GetRecords lists all the records in the zone.
 func (p *Provider) GetRecords(ctx context.Context, zone string) ([]libdns.Record, error) {
-	client := NewClient(&Config{
-		Credentials: &Credentials{
-			OAuth2ClientID: p.OAuth2ClientID,
-			OAuth2SecretID: p.OAuth2SecretID,
-			Username:       p.Username,
-			Password:       p.Password,
-		},
-		ZoneName:       zone,
-		DnsServiceName: p.NicRuServiceName,
-		CachePath:      p.CachePath,
-	})
+	client := NewClient(p)
 	var records []libdns.Record
-	rrs, err := client.GetRecords()
+	rrs, err := client.GetRecords(zone)
 	if err != nil {
 		return nil, err
 	}
@@ -100,22 +90,12 @@ func (p *Provider) GetRecords(ctx context.Context, zone string) ([]libdns.Record
 
 // AppendRecords adds records to the zone. It returns the records that were added.
 func (p *Provider) AppendRecords(ctx context.Context, zone string, records []libdns.Record) ([]libdns.Record, error) {
-	client := NewClient(&Config{
-		Credentials: &Credentials{
-			OAuth2ClientID: p.OAuth2ClientID,
-			OAuth2SecretID: p.OAuth2SecretID,
-			Username:       p.Username,
-			Password:       p.Password,
-		},
-		ZoneName:       zone,
-		DnsServiceName: p.NicRuServiceName,
-		CachePath:      p.CachePath,
-	})
+	client := NewClient(p)
 	var result []libdns.Record
 	for _, record := range records {
 		switch record.Type {
 		case `A`:
-			response, err := client.AddA([]string{record.Name}, record.Value, strconv.Itoa(int(record.TTL.Seconds())))
+			response, err := client.AddA(zone, []string{record.Name}, record.Value, strconv.Itoa(int(record.TTL.Seconds())))
 			if err != nil {
 				return nil, err
 			}
@@ -127,7 +107,7 @@ func (p *Provider) AppendRecords(ctx context.Context, zone string, records []lib
 				TTL:   record.TTL,
 			})
 		case `AAAA`:
-			response, err := client.AddA([]string{record.Name}, record.Value, strconv.Itoa(int(record.TTL.Seconds())))
+			response, err := client.AddA(zone, []string{record.Name}, record.Value, strconv.Itoa(int(record.TTL.Seconds())))
 			if err != nil {
 				return nil, err
 			}
@@ -139,7 +119,7 @@ func (p *Provider) AppendRecords(ctx context.Context, zone string, records []lib
 				TTL:   record.TTL,
 			})
 		case `CNAME`:
-			response, err := client.AddCnames([]string{record.Name}, record.Value, strconv.Itoa(int(record.TTL.Seconds())))
+			response, err := client.AddCnames(zone, []string{record.Name}, record.Value, strconv.Itoa(int(record.TTL.Seconds())))
 			if err != nil {
 				return nil, err
 			}
@@ -151,7 +131,7 @@ func (p *Provider) AppendRecords(ctx context.Context, zone string, records []lib
 				TTL:   record.TTL,
 			})
 		case `MX`:
-			response, err := client.AddCnames([]string{record.Name}, record.Value, strconv.Itoa(int(record.TTL.Seconds())))
+			response, err := client.AddCnames(zone, []string{record.Name}, record.Value, strconv.Itoa(int(record.TTL.Seconds())))
 			if err != nil {
 				return nil, err
 			}
@@ -168,7 +148,7 @@ func (p *Provider) AppendRecords(ctx context.Context, zone string, records []lib
 				Priority: int(priority),
 			})
 		case `TXT`:
-			response, err := client.AddCnames([]string{record.Name}, record.Value, strconv.Itoa(int(record.TTL.Seconds())))
+			response, err := client.AddCnames(zone, []string{record.Name}, record.Value, strconv.Itoa(int(record.TTL.Seconds())))
 			if err != nil {
 				return nil, err
 			}
@@ -183,7 +163,7 @@ func (p *Provider) AppendRecords(ctx context.Context, zone string, records []lib
 			return nil, errors.Wrap(NotImplementedRecordType, record.Type)
 		}
 	}
-	if _, err := client.CommitZone(); err != nil {
+	if _, err := client.CommitZone(zone); err != nil {
 		return nil, err
 	} else {
 		return result, nil
@@ -193,18 +173,8 @@ func (p *Provider) AppendRecords(ctx context.Context, zone string, records []lib
 // SetRecords sets the records in the zone, either by updating existing records or creating new ones.
 // It returns the updated records.
 func (p *Provider) SetRecords(ctx context.Context, zone string, records []libdns.Record) ([]libdns.Record, error) {
-	client := NewClient(&Config{
-		Credentials: &Credentials{
-			OAuth2ClientID: p.OAuth2ClientID,
-			OAuth2SecretID: p.OAuth2SecretID,
-			Username:       p.Username,
-			Password:       p.Password,
-		},
-		ZoneName:       zone,
-		DnsServiceName: p.NicRuServiceName,
-		CachePath:      p.CachePath,
-	})
-	allRecords, err := client.GetRecords()
+	client := NewClient(p)
+	allRecords, err := client.GetRecords(zone)
 	if err != nil {
 		return nil, err
 	}
@@ -216,14 +186,14 @@ func (p *Provider) SetRecords(ctx context.Context, zone string, records []libdns
 			if err != nil {
 				return nil, err
 			}
-			if _, err := client.DeleteRecord(int(id)); err != nil {
+			if _, err := client.DeleteRecord(zone, int(id)); err != nil {
 				return nil, err
 			}
 		}
 		// now add new records
 		switch record.Type {
 		case `A`:
-			response, err := client.AddA([]string{record.Name}, record.Value, strconv.Itoa(int(record.TTL.Seconds())))
+			response, err := client.AddA(zone, []string{record.Name}, record.Value, strconv.Itoa(int(record.TTL.Seconds())))
 			if err != nil {
 				return nil, err
 			}
@@ -235,7 +205,7 @@ func (p *Provider) SetRecords(ctx context.Context, zone string, records []libdns
 				TTL:   record.TTL,
 			})
 		case `AAAA`:
-			response, err := client.AddA([]string{record.Name}, record.Value, strconv.Itoa(int(record.TTL.Seconds())))
+			response, err := client.AddA(zone, []string{record.Name}, record.Value, strconv.Itoa(int(record.TTL.Seconds())))
 			if err != nil {
 				return nil, err
 			}
@@ -247,7 +217,7 @@ func (p *Provider) SetRecords(ctx context.Context, zone string, records []libdns
 				TTL:   record.TTL,
 			})
 		case `CNAME`:
-			response, err := client.AddCnames([]string{record.Name}, record.Value, strconv.Itoa(int(record.TTL.Seconds())))
+			response, err := client.AddCnames(zone, []string{record.Name}, record.Value, strconv.Itoa(int(record.TTL.Seconds())))
 			if err != nil {
 				return nil, err
 			}
@@ -259,7 +229,7 @@ func (p *Provider) SetRecords(ctx context.Context, zone string, records []libdns
 				TTL:   record.TTL,
 			})
 		case `TXT`:
-			response, err := client.AddCnames([]string{record.Name}, record.Value, strconv.Itoa(int(record.TTL.Seconds())))
+			response, err := client.AddCnames(zone, []string{record.Name}, record.Value, strconv.Itoa(int(record.TTL.Seconds())))
 			if err != nil {
 				return nil, err
 			}
@@ -271,7 +241,7 @@ func (p *Provider) SetRecords(ctx context.Context, zone string, records []libdns
 				TTL:   record.TTL,
 			})
 		case `MX`:
-			response, err := client.AddCnames([]string{record.Name}, record.Value, strconv.Itoa(int(record.TTL.Seconds())))
+			response, err := client.AddCnames(zone, []string{record.Name}, record.Value, strconv.Itoa(int(record.TTL.Seconds())))
 			if err != nil {
 				return nil, err
 			}
@@ -288,7 +258,7 @@ func (p *Provider) SetRecords(ctx context.Context, zone string, records []libdns
 			return nil, errors.Wrap(NotImplementedRecordType, record.Type)
 		}
 	}
-	if _, err := client.CommitZone(); err != nil {
+	if _, err := client.CommitZone(zone); err != nil {
 		return nil, err
 	} else {
 		return result, nil
@@ -297,29 +267,19 @@ func (p *Provider) SetRecords(ctx context.Context, zone string, records []libdns
 
 // DeleteRecords deletes the records from the zone. It returns the records that were deleted.
 func (p *Provider) DeleteRecords(ctx context.Context, zone string, records []libdns.Record) ([]libdns.Record, error) {
-	client := NewClient(&Config{
-		Credentials: &Credentials{
-			OAuth2ClientID: p.OAuth2ClientID,
-			OAuth2SecretID: p.OAuth2SecretID,
-			Username:       p.Username,
-			Password:       p.Password,
-		},
-		ZoneName:       zone,
-		DnsServiceName: p.NicRuServiceName,
-		CachePath:      p.CachePath,
-	})
+	client := NewClient(p)
 	var result []libdns.Record
 	for _, record := range records {
 		id, err := strconv.ParseInt(record.ID, 10, 64)
 		if err != nil {
 			return nil, err
 		}
-		if _, err := client.DeleteRecord(int(id)); err != nil {
+		if _, err := client.DeleteRecord(zone, int(id)); err != nil {
 			return nil, err
 		}
 		result = append(result, record)
 	}
-	if _, err := client.CommitZone(); err != nil {
+	if _, err := client.CommitZone(zone); err != nil {
 		return nil, err
 	} else {
 		return result, nil

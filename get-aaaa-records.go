@@ -5,8 +5,8 @@ import (
 	"regexp"
 )
 
-func (client *Client) GetAAAARecords(nameFilter string, targetFilter string) ([]*RR, error) {
-	allRecords, err := client.GetRecords()
+func (client *Client) GetAAAARecords(zoneName string, nameFilter string, targetFilter string) ([]*RR, error) {
+	allRecords, err := client.GetRecords(zoneName)
 	if err != nil {
 		return nil, err
 	}
