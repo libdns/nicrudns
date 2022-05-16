@@ -3,7 +3,7 @@ Golang client for NIC.ru API for [`libdns`](https://github.com/libdns/libdns)
 
 [![Go Reference](https://pkg.go.dev/badge/test.svg)](https://pkg.go.dev/github.com/libdns/TODO:PROVIDER_NAME)
 
-This package implements the [libdns interfaces](https://github.com/libdns/libdns) for NIC.ru, allowing you to manage DNS records.
+This package implements the [libdns interfaces](https://github.com/libdns/libdns) for NIC.ru API, allowing you to manage DNS records.
 
 Usage Example:
 ```
