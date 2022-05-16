@@ -7,35 +7,23 @@ This package implements the [libdns interfaces](https://github.com/libdns/libdns
 
 Usage Example:
 ```
-package nicrudns
+package examples
 
 import (
 	"context"
 	"fmt"
 	"github.com/libdns/libdns"
+	"github.com/libdns/nicrudns"
 	"github.com/pkg/errors"
 	"time"
 )
 
 var (
-	clientID         string
-	secretID         string
-	username         string
-	password         string
-	zoneName         string
-	nicruServiceName string
-	cachePath        string
+	provider = nicrudns.Provider{}
+	zoneName string
 )
 
 func ExampleLibdnsProvider() error {
-	provider := Provider{
-		OAuth2ClientID:   clientID,
-		OAuth2SecretID:   secretID,
-		Username:         username,
-		Password:         password,
-		NicRuServiceName: nicruServiceName,
-		CachePath:        cachePath,
-	}
 	ctx := context.TODO()
 	var records = []libdns.Record{
 		{
@@ -56,20 +44,9 @@ func ExampleLibdnsProvider() error {
 }
 
 func ExampleNicruClient() error {
-	config := &Config{
-		Credentials: &Credentials{
-			OAuth2ClientID: clientID,
-			OAuth2SecretID: secretID,
-			Username:       username,
-			Password:       password,
-		},
-		ZoneName:       zoneName,
-		DnsServiceName: nicruServiceName,
-		CachePath:      cachePath,
-	}
-	client := NewClient(config)
+	client := nicrudns.NewClient(&provider)
 	var names = []string{`www`}
-	if response, err := client.AddA(names, `1.2.3.4`, `3600`); err != nil {
+	if response, err := client.AddA(zoneName, names, `1.2.3.4`, `3600`); err != nil {
 		return errors.Wrap(err, `add records error`)
 	} else {
 		for _, rr := range response.Data.Zone[0].Rr {
@@ -78,5 +55,4 @@ func ExampleNicruClient() error {
 		return nil
 	}
 }
-
 ```

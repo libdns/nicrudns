@@ -10,24 +10,11 @@ import (
 )
 
 var (
-	clientID         string
-	secretID         string
-	username         string
-	password         string
-	zoneName         string
-	nicruServiceName string
-	cachePath        string
+	provider = nicrudns.Provider{}
+	zoneName string
 )
 
 func ExampleLibdnsProvider() error {
-	provider := nicrudns.Provider{
-		OAuth2ClientID: clientID,
-		OAuth2SecretID: secretID,
-		Username:       username,
-		Password:       password,
-		DnsServiceName: nicruServiceName,
-		CachePath:      cachePath,
-	}
 	ctx := context.TODO()
 	var records = []libdns.Record{
 		{
@@ -48,14 +35,6 @@ func ExampleLibdnsProvider() error {
 }
 
 func ExampleNicruClient() error {
-	provider := nicrudns.Provider{
-		OAuth2ClientID: clientID,
-		OAuth2SecretID: secretID,
-		Username:       username,
-		Password:       password,
-		DnsServiceName: nicruServiceName,
-		CachePath:      cachePath,
-	}
 	client := nicrudns.NewClient(&provider)
 	var names = []string{`www`}
 	if response, err := client.AddA(zoneName, names, `1.2.3.4`, `3600`); err != nil {
