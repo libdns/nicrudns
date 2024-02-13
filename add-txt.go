@@ -9,7 +9,7 @@ func (client *Client) AddTxt(zoneName string, names []string, target string, ttl
 	for _, name := range names {
 		request.RrList.Rr = append(request.RrList.Rr, &RR{
 			Name: name,
-			Type: `MX`,
+			Type: `TXT`,
 			Ttl:  ttl,
 			Txt: &Txt{
 				String: target,
